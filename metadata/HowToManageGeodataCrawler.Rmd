@@ -1,0 +1,114 @@
+---
+title: "How To Manage GeodataCrawler"
+author: "Jon Skaggs"
+date: "12/3/2019"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(rmarkdown)
+library(fs)
+```
+
+## Purpose and overview
+GeodataCrawler is a python-based program used to collect data associated with user points and was conceived, written, and developed by Doug Leasure. Jon Skaggs and Greg Jacobs began helping to manage GeodataCrawler in Summer 2019.
+
+As of 2019-12-03, GeodataCrawler can be accessed on three machines:
+
+* 172.18.246.219 ("SethNew"), E: ("Leisurely Drive")
+
+* 172.18.246.214 ("Lefty"), E: ("Leisurely Drive 2")
+
+* 172.18.246.200 ("Poncho"), E: ("Leisurely Drive 3")
+
+## Quick start
+1. Initiate GeodataCrawler using _SYSTEM/GeodataCrawler.bat_
+
+2. Add POINTS.shp, AOI.shp, and USER_OPTIONS.csv to a folder
+
+3. Copy your folder in _QUEUE_PROJECT_
+
+## Anatomy
+```{r anatomy, echo = FALSE}
+fs::dir_tree(path = "../GeodataCrawler_dummy", recurse = TRUE, all = FALSE, regex = "(\\~\\$*)|(*\\.dir$)|(*\\.adf$)|(*\\.ini)|(*\\.pyc)", invert = TRUE)
+```
+
+## User input data
+GeodataCrawler expects user input data to be in a specific format:
+
+* A shapefile of user sites called POINTS.*
+
+* A shapefile of your area of interset called AOI.* Data will only be collected from this area. For aquatics, this is usually a watershed.
+
+* A spreadsheet that defines the project name, output name, and user selected variable(s) and scale(s) called USER_OPTIONS.csv. Use the template in the _docs_.
+
+*Must be projected in the custom NAD_1983_Albers_GDC projection.
+
+To initate GeodataCrawler, run _SYSTEM/Run_GeodataCrawler.bat_. GeodataCrawler is now actively looking for user files in _QUEUE_PROJECT_.
+
+## Adding new system data
+1. Make a backup of GeodataCrawler on _Arapaima/backup_.
+
+2. Use ArcCatalog to add data to _DATABASES_SYSTEM_.
+
+3. Update _SYSTEM/gcLayers.csv_.
+
+4. Update _SYSTEM/gcVariables.csv_.
+
+5. Update _docs/USER_OPTIONS.csv_.
+
+## Multithreading
+The current version of GeodataCrawler supports manual multithreading. In this case, multithreading refers to the ability of GeodataCrawler to collect data for multible projects or multible subgroups of the same project simultaneously. Manual refers to the fact that users are required to "dole" data into groups. The number of allowable simultaneous GeodataCrawler instances is controlled by 'cpu_use' in _SYSTEM>gcDirs.py_. As of 2019-12-03, _cpu_use_ is set to optimize efficient data collection on Poncho (6) and SethNew (4).
+
+### Helper scripts
+Scripts located in _HELPERS_ aid in data collection with multithreading. **acanthonus_dole.py** allows users to subset data into n groups, subset spatially (i.e. HUC4), or both. **batchuseroptions.R** copies a USER_OPTIONS file into 'doled' project folders. **acanthonus_compile.py** is the inverse of dole: use this script to compile doled projects back together.
+
+### Tracking performance
+Geodatacrawler expends different amounts of processing power during different phases of the data collection process. You can monitor this in real-time in Task Manager > Performance. GDC appears to require the most CPU during sample area delineation (where larger sample areas require more processing power). The number of simultaneous GDC instances (threads) is primarily limited to CPU capacity and _cpu_use_ has been set accordingly on Poncho (.200) and SethNew (.219). Exceeding CPU capacity may lead to a crash, which reduces data collection efficiency and possibly introduces error and data loss. If hardware changes occur, or you want to tune Geodatacrawler multithreading to a particular project, monitoring resource usage by GeodataCrawler may help you make decisions.
+
+* (in windows command prompt type) perfmon
+
+* Data Collector Sets > User Defined > Right Click > New > Data Collector Set
+
+* (in wizard) Name: "whatever you want" > (toggle) Create manually > Next
+
+* (in wizard) Create data logs > (toggle) Performance Counter > Next
+
+* (in wizard) Add > Processor Information > % Performance Time > _Total > Add > Next
+
+* (in wizard) (You'll see \Processor Information(_Total)\% Processor Time) > (set) Sample Interval to 10 seconds > Next
+
+* (in wizard) (set) Root Directory to Desktop/LogProcessor > Next
+
+* (in wizard) (toggle) Start this data collector set now > Finish
+
+The data collector will now run indefinitely. You can stop/start/modify it by navigating back to cmd>perfmon and selecting your User Data Collector.
+
+## ArcGIS Version
+If ArcGIS is updated on a GeodataCrawler machine: 
+
+(1) Update the path to ArcGIS python in SYSTEM>GeodataCrawler.bat.
+
+(2) Update the ArcGIS verison value in SYSTEM>gc_Dirs.py.
+
+## emailMe()
+Notifications are sent to GeodataCrawler managers when a project completes or fails. As of 2019-12-03, emails are sent from geodatacrawler@gmail.com (password: XXX) to jonathon.skaggs@gmail.com.
+
+## Update log
+2019-08-00: Added NLCD2016 data products.
+
+2019-11-30: Added emailMe().
+
+2019-12-03: Added gdc_dole.py to HELPERS.
+
+2019-12-03: Added gdc_compile.py to HELPERS.
+
+2019-12-03: Added batchuseroptions.R to HELPERS.
+
+## To do
+2019-12-03: Write helper script for adding data to GeodataCrawler.
