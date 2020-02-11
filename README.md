@@ -8,4 +8,4 @@ Dole (distribute) a site dataset into inbound GDC projects. You can split your i
 Batch processing and placement of USER_OPTIONS.csv in a directory of inbound GDC projects.
 
 ### compile.py
-Reverse of dole.py; compile/reconstitute your outbound GDC projects.
+Reverse of dole.py; compile (reconstitute) outbound GDC projects.
